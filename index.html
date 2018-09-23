@@ -224,7 +224,22 @@
             <a href="#ecommerce-tracking-with-ahoy" class="toc-h1 toc-link" data-title="ecommerce-tracking-with-ahoy">Ecommerce Tracking with Ahoy</a>
               <ul class="toc-list-h2">
                   <li>
+                    <a href="#draft" class="toc-h2 toc-link" data-title="draft">DRAFT</a>
+                  </li>
+                  <li>
                     <a href="#introduction" class="toc-h2 toc-link" data-title="introduction">Introduction</a>
+                  </li>
+                  <li>
+                    <a href="#architecture" class="toc-h2 toc-link" data-title="architecture">Architecture</a>
+                  </li>
+                  <li>
+                    <a href="#scope-and-tasks" class="toc-h2 toc-link" data-title="scope-and-tasks">Scope and Tasks</a>
+                  </li>
+                  <li>
+                    <a href="#simple-website" class="toc-h2 toc-link" data-title="simple-website">Simple Website</a>
+                  </li>
+                  <li>
+                    <a href="#rails-application-with-ahoy" class="toc-h2 toc-link" data-title="rails-application-with-ahoy">Rails Application with Ahoy</a>
                   </li>
               </ul>
           </li>
@@ -241,12 +256,109 @@
         <h1 id='ecommerce-tracking-with-ahoy'>Ecommerce Tracking with Ahoy</h1>
 <p><strong>by Daniel Kehoe</strong></p>
 
-<p><em>Last updated 20 September 2018</em></p>
+<p><em>Last updated 23 September 2018</em></p>
+<h2 id='draft'>DRAFT</h2>
+<p>These are notes for a tutorial that introduces <a href="https://www.retentionrocket.com/">Retention Rocket</a> to Rails developers.</p>
 <h2 id='introduction'>Introduction</h2>
 <blockquote>
-<p>Copy and paste from this &quot;code column&quot; to build a demo application. Read the adjacent column for explanation and details.</p>
+<p>This &quot;code column&quot; contains code examples. Read the adjacent column for explanation and details.</p>
 </blockquote>
 
+<p>In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the number of transactions and revenue that your website generates. More importantly, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.</p>
+
+<p>You may be familiar with Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor&#39;s progress through a sales funnel. Mixpanel focuses on tracking visitors rather than page views, which means once a visitor enters an email address or other identifying information, the visitor&#39;s page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.</p>
+
+<p>In this tutorial, we&#39;ll look at a &quot;do-it-yourself&quot; alternative for programmers that can simplify ecommerce tracking. We&#39;ll use the <a href="https://github.com/ankane/ahoy.js">Ahoy JavaScript analytics library</a> in combination with a Rails application that uses the <a href="https://github.com/ankane/ahoy">Ahoy Ruby gem</a>. Rather than use a tool such as Google Analytics or Mixpanel, you can add the Ahoy JavaScript analytics script to any website and send tracking data to a Rails application. You can customize the integration as you wish and you won&#39;t pay for the service or rely on a third-party to store your data. You may also gather more data, since many users employ ad blockers that prevent Google Analytics from collecting data.</p>
+<h2 id='architecture'>Architecture</h2>
+<p>You can add the Ahoy JavaScript analytics script to any website (it doesn&#39;t have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration.</p>
+
+<p>We will collect the tracking data by creating a Rails application that records the Ahoy API requests. We could create an API-only Rails application just to save the data to a database but in this case we&#39;d like to visit the application and see reports.</p>
+<h2 id='scope-and-tasks'>Scope and Tasks</h2>
+<p>The primary purpose of this tutorial is to introduce the concepts you&#39;ll need to understand the implementation of ecommerce tracking. To that end, we will build a simple generic website with HTML and CSS and add the Ahoy JavaScript analytics library.</p>
+
+<p>To record the tracking data, we&#39;ll build a Rails application and add the <a href="https://github.com/ankane/ahoy">Ahoy Ruby gem</a> that records Ahoy API event requests.</p>
+
+<p>After we&#39;ve confirmed that the Rails application captures data from the simple generic website, we&#39;ll build an ecommerce website in Rails and implement event tracking using the Ahoy API. With the experience you gain, you&#39;ll be able to integrate the Ahoy tracking library with any ecommerce website you build and capture the data with a Rails application.</p>
+
+<p>You&#39;ll also have a solid understanding for integrating sophisticated ecommerce strategies such as retention marketing with the <a href="https://www.retentionrocket.com/">Retention Rocket</a> platform. Retention Rocket uses a JavaScript library that is similar to the Ahoy library and sends event data to track and respond to events such as cart abandonment. Our tutorial <a href="https://railsapps.github.io/tutorial-retention-marketing/">Retention Marketing with Retention Rocket</a> goes in depth to show how to reduce cart abandonment and increase site revenue.</p>
+<h2 id='simple-website'>Simple Website</h2>
+<p>We&#39;ll start by building a simple website. We&#39;ll add the Ahoy JavaScript analytics library so we can visit the website home page and trigger an API request that sends event data to a remote server. To save effort and get a web page that looks realistic, we&#39;ll download a Bootstrap template from the <a href="https://startbootstrap.com/">Start Bootstrap</a> site.</p>
+
+<p>Visit the <a href="https://startbootstrap.com/template-overviews/shop-homepage/">Shop Homepage</a> and click the download button to get a zip archive file on your local machine. Open the zip archive and rename the folder to &quot;GenericStore.&quot;</p>
+<h3 id='add-the-ahoy-javascript-library'>Add the Ahoy JavaScript Library</h3><pre class="highlight html tab-html"><code><span class="nt">&lt;head&gt;</span>
+
+  <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width, initial-scale=1, shrink-to-fit=no"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"description"</span> <span class="na">content=</span><span class="s">""</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"author"</span> <span class="na">content=</span><span class="s">""</span><span class="nt">&gt;</span>
+
+  <span class="nt">&lt;title&gt;</span>Shop Homepage - Start Bootstrap Template<span class="nt">&lt;/title&gt;</span>
+
+  <span class="c">&lt;!-- Bootstrap core CSS --&gt;</span>
+  <span class="nt">&lt;link</span> <span class="na">href=</span><span class="s">"vendor/bootstrap/css/bootstrap.min.css"</span> <span class="na">rel=</span><span class="s">"stylesheet"</span><span class="nt">&gt;</span>
+
+  <span class="c">&lt;!-- Custom styles for this template --&gt;</span>
+  <span class="nt">&lt;link</span> <span class="na">href=</span><span class="s">"css/shop-homepage.css"</span> <span class="na">rel=</span><span class="s">"stylesheet"</span><span class="nt">&gt;</span>
+
+  <span class="c">&lt;!-- Ahoy analytics --&gt;</span>
+  <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://unpkg.com/ahoy.js@0.3.3/dist/ahoy.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+
+<span class="nt">&lt;/head&gt;</span>
+</code></pre>
+<p>Inside the folder is an <em>index.html</em> file. Open the file in a text editor and edit the <code>&lt;head&gt;</code> section. Add a line before the final <code>&lt;/head&gt;</code> tag:</p>
+
+<p><code>&lt;script src=&quot;https://unpkg.com/ahoy.js@0.3.3/dist/ahoy.js&quot;&gt;&lt;/script&gt;</code></p>
+
+<p>This directive will download and include the Ahoy JavaScript analytics library from the Unpkg content delivery network. Alternatively, you can download and save the JavaScript file to the GenericStore folder and add an appropriate <code>&lt;script&gt;</code> tag. Visit the GitHub repository for the <a href="https://github.com/ankane/ahoy.js">Ahoy JavaScript analytics library</a> to learn more about the library and its functions.</p>
+
+<aside class="notice">
+The Developer Tools view will be your primary diagnostic tool for front-end development. In Chrome on macOS, press Command-Option-I to open the Developer Tools View in a section of the browser window. Alternatively, you can find the menu item under View/Developer/Developer Tools. In Chrome on Windows or Linux platforms, press Shift-Ctrl-I or select Menu/Tools/Developer Tools.
+</aside>
+
+<p>View the web page by opening the <em>index.html</em> file in a web browser. Use Google Chrome Developer Tools to verify that the <em>ahoy.js</em> file is loaded (it will appear under the Sources and Network tabs).</p>
+<h3 id='test-the-ahoy-javascript-library'>Test the Ahoy JavaScript Library</h3><pre class="highlight shell_session"><code>&gt; ahoy.trackAll();
+ahoy.js:317 Uncaught TypeError: Failed to execute 'sendBeacon'
+on 'Navigator': Beacons are only supported over HTTP(S).
+</code></pre>
+<p>Switch to the Console tab in Developer Tools to test the Ahoy JavaScript analytics library. Enter a Javascript directive to test if the Ahoy library responds.</p>
+
+<p><code>ahoy.trackAll();</code></p>
+
+<p>The console will display an error. You&#39;ve opened an HTML file from the local file system in the web browser. Ahoy will only work if the web browser requests the page from a web server. You can run a local web server to test Ahoy.</p>
+
+<p>To view the Generic Store home page from a local web server, you must have Node.js, npm, and Gulp installed globally on your machine. You can <a href="https://nodejs.org/en/">install Node.js</a> to get Node.js and npm. After npm is installed, install gulp with <code>npm install gulp</code>. <a href="https://nodejs.org/en/">Node.js</a> provides a local web server. <a href="https://www.npmjs.com/">NPM</a> is a package manager for JavaScript libraries that run under Node. <a href="https://gulpjs.com/">Gulp</a> is a build tool for JavaScript development. There are other ways to deploy an html file with a local web server, but the Start Bootstrap template is set up conveniently for Node.js, npm, and Gulp.</p>
+<pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">node</span><span class="kv"> -v
+</span>v8.5.0
+<span class="w">$ </span><span class="nc">npm</span><span class="kv"> -v
+</span>6.4.1
+<span class="w">$ </span><span class="nc">gulp</span><span class="kv"> -v
+</span>[...] Local version 3.9.1
+</code></pre>
+<p>Check that Node.js, npm, and Gulp are installed.</p>
+
+<p><code>$ node -v</code></p>
+
+<p><code>$ npm -v</code></p>
+
+<p><code>$ gulp -v</code></p>
+<pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">gulp</span><span class="kv"> dev
+</span>[...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
+</code></pre>
+<p>Next you will start the local web server using Gulp. The Generic Store home page will be available in your web browser at <a href="http://localhost:3000">http://localhost:3000</a>.</p>
+
+<p><code>$ gulp dev</code></p>
+<pre class="highlight shell_session"><code>&gt; ahoy.trackAll();
+undefined
+POST http://localhost:3000/ahoy/events 404 (Not Found)
+</code></pre>
+<p>Open the Chrome Developer Tools console and enter:</p>
+
+<p><code>ahoy.trackAll();</code></p>
+
+<p>The Ahoy library will attempt to send a <code>POST</code> request to the local web server and you&#39;ll see a <code>404</code> error message that the local web server cannot find the URL where Ahoy is sending the request. This is progress! Earlier, Ahoy was unable to send tracking data. Now Ahoy is sending tracking data but it is not configured to send the tracking data to a server that can process the API requests.</p>
+
+<p>At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don&#39;t have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.</p>
+<h2 id='rails-application-with-ahoy'>Rails Application with Ahoy</h2>
       </div>
       <div class="dark-box">
       </div>
