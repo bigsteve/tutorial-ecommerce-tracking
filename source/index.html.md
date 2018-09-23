@@ -152,3 +152,79 @@ The Ahoy library will attempt to send a `POST` request to the local web server a
 At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don't have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.
 
 ## Rails Application with Ahoy
+
+```console
+$ ruby -v
+ruby 2.5.1 ...
+$ rails -v
+Rails 5.2.0
+$ rails new ecommerce-tracking
+...
+$ cd ecommerce-tracking
+$ rails -T
+...
+```
+
+If you're new to Rails, you can learn [how to install Rails](http://railsapps.github.io/installrubyonrails-mac.html) and set up your development environment. Check that Ruby and Rails are installed, then build a Rails starter application named "ecommerce-tracking":
+
+`$ ruby -v`
+
+`$ rails -v`
+
+`$ rails new ecommerce-tracking`
+
+`$ cd ecommerce-tracking`
+
+You can confirm the application is functional by running a "smoke test" with `rails -T`. You should see a list of Rails commands.
+
+```ruby
+# Gemfile
+source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+ruby '2.5.1'
+...
+# gems for ecommerce tracking
+gem 'ahoy_matey'
+```
+
+Commit your work to git with a message "starter app".
+
+Open the Gemfile and add the Ahoy Ruby gem (version 2). Add the gem at the end of the file:
+
+`gem 'ahoy_matey', '~> 2'`
+
+```console
+$ bundle install
+...
+$ rails generate ahoy:install
+create  config/initializers/ahoy.rb
+create  app/models/ahoy/visit.rb
+create  app/models/ahoy/event.rb
+create  db/migrate/20180923075710_create_ahoy_visits_and_events.rb
+
+Almost set! Last, run:
+
+rails db:migrate
+$ rails db:migrate
+...
+```
+
+Install the gem with Bundler and run the Ahoy install script and a database migration:
+
+`$ bundle install`
+
+`$ rails generate ahoy:install`
+
+`$ rails db:migrate`
+
+The Ahoy Rails generator creates a configuration file *config/initializers/ahoy.rb* and two Ahoy models for a `Visit` and `Event`. The database migration updates the database to add two new tables for the visits and events. You can see the new tables in the *db/schema.rb* file.
+
+Commit your work to git with a message "add Ahoy".
+
+### Test the Rails application
+
+Start the Rails server:
+
+`$ rails server`
+
+Visit the application home page at [http://localhost:3000/](http://localhost:3000/). You'll see the default Rails home page and Ahoy will record a visit in the database.
