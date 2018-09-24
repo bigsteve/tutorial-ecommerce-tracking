@@ -239,10 +239,13 @@
                     <a href="#simple-website" class="toc-h2 toc-link" data-title="simple-website">Simple Website</a>
                   </li>
                   <li>
-                    <a href="#rails-composer" class="toc-h2 toc-link" data-title="rails-composer">Rails Composer</a>
+                    <a href="#new-application-with-rails-composer" class="toc-h2 toc-link" data-title="new-application-with-rails-composer">New Application with Rails Composer</a>
                   </li>
                   <li>
                     <a href="#add-ahoy-to-the-application" class="toc-h2 toc-link" data-title="add-ahoy-to-the-application">Add Ahoy to the Application</a>
+                  </li>
+                  <li>
+                    <a href="#test-api-requests" class="toc-h2 toc-link" data-title="test-api-requests">Test API Requests</a>
                   </li>
               </ul>
           </li>
@@ -365,7 +368,7 @@ POST http://localhost:3000/ahoy/events 404 (Not Found)
 <p>The Ahoy library will attempt to send a <code>POST</code> request to the local web server and you&#39;ll see a <code>404</code> error message that the local web server cannot find the URL where Ahoy is sending the request. This is progress! Earlier, Ahoy was unable to send tracking data. Now Ahoy is sending tracking data but it is not configured to send the tracking data to a server that can process the API requests.</p>
 
 <p>At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don&#39;t have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.</p>
-<h2 id='rails-composer'>Rails Composer</h2><pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">ruby</span><span class="kv"> -v
+<h2 id='new-application-with-rails-composer'>New Application with Rails Composer</h2><pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">ruby</span><span class="kv"> -v
 </span>ruby 2.5.1 ...
 <span class="w">$ </span><span class="nc">rails</span><span class="kv"> -v
 </span>Rails 5.2.0
@@ -535,10 +538,42 @@ rails db:migrate
 <p>Restart the Rails server and visit the application home page. Check the console log and make sure that visits are not getting recorded. You should see ordinary Rails page requests but no writes of Ahoy visits or events.</p>
 
 <p>Commit your work to git with a message &quot;configure Ahoy for API requests&quot;.</p>
-<h3 id='set-ports'>Set Ports</h3>
+
+<p>You can leave the Rails application running. Next we&#39;ll test to see if the Rails application will capture API requests from the Generic Store web page.</p>
+<h2 id='test-api-requests'>Test API Requests</h2>
+<p>Let&#39;s see if we can generate API requests from the Generic Store web page and record the visits and events in our Rails application.</p>
+<h3 id='configure-ahoy'>Configure Ahoy</h3><pre class="highlight html tab-html"><code><span class="nt">&lt;script&gt;</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'loading ahoy.configure'</span><span class="p">);</span>
+  <span class="nx">ahoy</span><span class="p">.</span><span class="nx">configure</span><span class="p">({</span>
+    <span class="na">urlPrefix</span><span class="p">:</span> <span class="s2">"http://localhost:3000"</span><span class="p">,</span>
+    <span class="na">visitsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/visits"</span><span class="p">,</span>
+    <span class="na">eventsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/events"</span><span class="p">,</span>
+    <span class="na">cookieDomain</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="na">page</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="na">platform</span><span class="p">:</span> <span class="s2">"Web"</span><span class="p">,</span>
+    <span class="na">useBeacon</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="na">startOnReady</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="na">trackVisits</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">});</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre>
+<p>We&#39;ll add JavaScript to configure <code>ahoy.js</code> to send events to <a href="http://localhost:3000/">http://localhost:3000/</a>.</p>
+<h3 id='launch-the-generic-store-server'>Launch the Generic Store Server</h3><pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">gulp</span><span class="kv"> dev
+</span>[...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
+</code></pre>
 <p>You can leave the Rails application running with its server responding to <a href="http://localhost:3000/">http://localhost:3000/</a>.</p>
 
-<p>We&#39;ll need to launch the Node.js server to serve the Generic Store web page on a different port.</p>
+<p>Launch the Node.js server to serve the Generic Store web page.</p>
+
+<p><code>$ gulp dev</code></p>
+
+<p>With the Rails application running on port 3000, the Node.js server recognizes the port is active and launches on port 3001.</p>
+<h3 id='issue-no-39-access-control-allow-origin-39'>Issue: No &#39;Access-Control-Allow-Origin&#39;</h3>
+<p>In the JavaScript console, you&#39;ll see an error:</p>
+
+<p><code>Failed to load http://localhost:3000/ahoy/events: Response to preflight request doesn&#39;t pass access control check: No &#39;Access-Control-Allow-Origin&#39; header is present on the requested resource. Origin &#39;http://localhost:3001&#39; is therefore not allowed access.</code></p>
+
+<p>Next we&#39;ll resolve this issue.</p>
 
       </div>
       <div class="dark-box">
