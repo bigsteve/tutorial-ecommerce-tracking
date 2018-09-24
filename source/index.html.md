@@ -151,7 +151,7 @@ The Ahoy library will attempt to send a `POST` request to the local web server a
 
 At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don't have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.
 
-## Rails Composer
+## New Application with Rails Composer
 
 ```console
 $ ruby -v
@@ -348,8 +348,52 @@ Restart the Rails server and visit the application home page. Check the console 
 
 Commit your work to git with a message "configure Ahoy for API requests".
 
-### Set Ports
+You can leave the Rails application running. Next we'll test to see if the Rails application will capture API requests from the Generic Store web page.
+
+## Test API Requests
+
+Let's see if we can generate API requests from the Generic Store web page and record the visits and events in our Rails application.
+
+### Configure Ahoy
+
+```html
+<script>
+  console.log('loading ahoy.configure');
+  ahoy.configure({
+    urlPrefix: "http://localhost:3000",
+    visitsUrl: "/ahoy/visits",
+    eventsUrl: "/ahoy/events",
+    cookieDomain: null,
+    page: null,
+    platform: "Web",
+    useBeacon: false,
+    startOnReady: true,
+    trackVisits: true
+  });
+</script>
+```
+
+We'll add JavaScript to configure `ahoy.js` to send events to [http://localhost:3000/](http://localhost:3000/).
+
+### Launch the Generic Store Server
+
+```console
+$ gulp dev
+[...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
+```
 
 You can leave the Rails application running with its server responding to [http://localhost:3000/](http://localhost:3000/).
 
-We'll need to launch the Node.js server to serve the Generic Store web page on a different port.
+Launch the Node.js server to serve the Generic Store web page.
+
+`$ gulp dev`
+
+With the Rails application running on port 3000, the Node.js server recognizes the port is active and launches on port 3001.
+
+### Issue: No 'Access-Control-Allow-Origin'
+
+In the JavaScript console, you'll see an error:
+
+`Failed to load http://localhost:3000/ahoy/events: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:3001' is therefore not allowed access.`
+
+Next we'll resolve this issue.
