@@ -30,7 +30,7 @@ These are notes for a tutorial that introduces [Retention Rocket](https://www.re
 
 In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the sales and marketing activity on your website. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.
 
-You may have heard of Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor's progress through a sales funnel. Mixpanel focuses on tracking visitors rather than page views, which means once a visitor enters an email address or other identifying information, the visitor's page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.
+You may have heard of Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor's progress through a sales funnel. Mixpanel focuses on tracking visitors, which means once a visitor enters an email address or other identifying information, the visitor's page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.
 
 In this tutorial, we'll look at a "do-it-yourself" alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you'll have an in-depth understanding of your tools).
 
@@ -42,7 +42,7 @@ You can add the Ahoy JavaScript analytics script to any website (it doesn't have
 
 We will collect the tracking data by creating a Rails application that records the Ahoy API requests. We could create an API-only Rails application just to save the data to a database but in this case we'd like to visit the application and see reports.
 
-A Google search for "Ahoy analytics example" will reveal several tutorials that show how to add the Ahoy Ruby gem to a Rails application so you can track activity within the application. These monolithic applications combine all functions within a single application and are suitable for simple applications which will not grow in complexity. In contrast, this tutorial shows you how to add the Ahoy JavaScript analytics script to any website and capture tracking data with a custom Rails application. Monitoring and sending visitor data is a separate function from recording visitor data and displaying reports. If your application is growing in complexity, you may find it worthwhile to implement a service-oriented architecture (SOA) and maintain a separate application for monitoring ecommerce activity. This is the approach we describe in this tutorial.
+A Google search for "Ahoy analytics example" will reveal several tutorials that show how to add the Ahoy Ruby gem to a Rails application so you can track activity within the application. These monolithic applications combine all functions within a single application and are suitable for simple applications which will not grow in complexity. In contrast, this tutorial shows you how to add the Ahoy JavaScript analytics script to any website and capture tracking data with a separate Rails application. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the "gathering" function from the "storing and reporting" function may be worthwhile. This service-oriented architecture (SOA) is the approach we describe in this tutorial.
 
 ## Scope and Tasks
 
@@ -151,31 +151,81 @@ The Ahoy library will attempt to send a `POST` request to the local web server a
 
 At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don't have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.
 
-## Rails Application with Ahoy
+## Rails Composer
 
 ```console
 $ ruby -v
 ruby 2.5.1 ...
 $ rails -v
 Rails 5.2.0
-$ rails new ecommerce-tracking
-...
+$ rails new ecommerce-tracking -m https://raw.github.com/RailsApps/rails-composer/master/composer.rb
+.
+.
+.
+option  Build a starter application?
+    1)  Build a RailsApps example application
+    2)  Contributed applications
+    3)  Custom application (experimental)
+choose  Enter your selection: 2
+option  Choose a starter application.
+    1)  rails-shortcut-app
+choose  Enter your selection: 1
+.
+.
+.
 $ cd ecommerce-tracking
+$ bundle install
+...
 $ rails -T
 ...
 ```
 
-If you're new to Rails, you can learn [how to install Rails](http://railsapps.github.io/installrubyonrails-mac.html) and set up your development environment. Check that Ruby and Rails are installed, then build a Rails starter application named "ecommerce-tracking":
+If you're new to Rails, you can learn [how to install Rails](http://railsapps.github.io/installrubyonrails-mac.html) and set up your development environment. Let's check that Ruby and Rails are installed. You'll need Ruby 2.5 (or newer) and Rails 5.2 (or newer) on your computer to follow this tutorial.
 
 `$ ruby -v`
 
 `$ rails -v`
 
-`$ rails new ecommerce-tracking`
+We'll use [Rails Composer](http://www.railscomposer.com/) to build the starter application named "ecommerce-tracking". Rails Composer will give us a fully functional application, complete with Devise for authentication, role-based authorization, and the Bootstrap frontend framework. Here's how to generate a starter application with Rails Composer:
+
+`$ rails new ecommerce-tracking -m https://raw.github.com/RailsApps/rails-composer/master/composer.rb`
+
+We'll name our application "ecommerce-tracking" but you can use any name you like. Choose:
+
+`2)  Contributed applications`
+
+and
+
+`1)  rails-shortcut-app`
+
+When Rails Composer finishes generating the application, change directories and run `bundle install`.
 
 `$ cd ecommerce-tracking`
 
+`$ bundle install`
+
 You can confirm the application is functional by running a "smoke test" with `rails -T`. You should see a list of Rails commands.
+
+You can run the application server to see if the application works.
+
+```console
+$ rails server
+=> Booting Puma
+=> Rails 5.2.0 application starting in development
+.
+.
+.
+```
+
+`$ rails server`
+
+View the app running at [http://localhost:3000/](http://localhost:3000/). You'll see a welcome page with a navigation bar that includes a "Sign in" link. You can sign in with the email address `user@example.com` and the password `changeme` (the credentials are set in the *config/secrets.yml* file).
+
+Rails Composer has generated a full functional Rails application. The rails-shortcut-app you've built is very similar to the [rails-devise-roles](https://github.com/RailsApps/rails-devise-roles) example application. See the [rails-devise-roles](https://github.com/RailsApps/rails-devise-roles) documentation if you'd like to learn how Devise authentication or role-based authorization is set up.
+
+Next we'll add Ahoy to the application so we can track visits and events.
+
+## Add Ahoy to the Application
 
 ```ruby
 # Gemfile
@@ -187,11 +237,9 @@ ruby '2.5.1'
 gem 'ahoy_matey'
 ```
 
-Commit your work to git with a message "starter app".
+Open the Gemfile and add the Ahoy Ruby gem. Add the gem at the end of the file:
 
-Open the Gemfile and add the Ahoy Ruby gem (version 2). Add the gem at the end of the file:
-
-`gem 'ahoy_matey', '~> 2'`
+`gem 'ahoy_matey'`
 
 ```console
 $ bundle install
@@ -221,10 +269,30 @@ The Ahoy Rails generator creates a configuration file *config/initializers/ahoy.
 
 Commit your work to git with a message "add Ahoy".
 
+### Modify the Application Controller
+
+```ruby
+# app/controllers/application_controller.rb
+class ApplicationController < ActionController::Base
+  after_action :track_action
+
+  protected
+
+  def track_action
+    ahoy.track "#{request.method} #{request.fullpath}", request.filtered_parameters.to_s
+  end
+end
+```
+Modify the application controller to record an Ahoy event to the database for every page request.
+
 ### Test the Rails application
 
 Start the Rails server:
 
 `$ rails server`
 
-Visit the application home page at [http://localhost:3000/](http://localhost:3000/). You'll see the default Rails home page and Ahoy will record a visit in the database.
+Visit the application home page at [http://localhost:3000/](http://localhost:3000/). You'll see the application home page.
+
+If you look at the console, you will see Ahoy records a visit in the database:
+
+`Ahoy::Visit Create (2.4ms)  INSERT INTO "ahoy_visits" ...`
