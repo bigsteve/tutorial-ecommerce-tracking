@@ -63,6 +63,7 @@ Visit the [Shop Homepage](https://startbootstrap.com/template-overviews/shop-hom
 ### Add the Ahoy JavaScript Library
 
 ```html
+# index.html
 <head>
 
   <meta charset="utf-8">
@@ -235,11 +236,16 @@ ruby '2.5.1'
 ...
 # gems for ecommerce tracking
 gem 'ahoy_matey'
+gem 'rack-cors'
 ```
 
-Open the Gemfile and add the Ahoy Ruby gem. Add the gem at the end of the file:
+Open the Gemfile and add two gems at the end of the file:
 
 `gem 'ahoy_matey'`
+
+`gem 'rack-cors'`
+
+The Ahoy Ruby gem is named `ahoy_matey`. The `rack-cors` gem will allow CORS (cross-origin HTTP requests) so that your frontend `ahoy.js` script can send API requests to a backend Rails application on a different domain.
 
 ```console
 $ bundle install
@@ -257,7 +263,7 @@ $ rails db:migrate
 ...
 ```
 
-Install the gem with Bundler and run the Ahoy install script and a database migration:
+Install the gems with Bundler and run the Ahoy install script and a database migration:
 
 `$ bundle install`
 
@@ -321,7 +327,7 @@ At this point we've got a Rails application that records visits and custom event
 
 Next we'll reconfigure Ahoy to ignore visits to the application and record API requests instead.
 
-### Configure for API Requests
+### Configure Ahoy for API Requests
 
 ```ruby
 # config/initializers/ahoy.rb
@@ -346,34 +352,55 @@ The Ahoy Ruby gem can be configured to respond to API requests and ignore server
 
 Restart the Rails server and visit the application home page. Check the console log and make sure that visits are not getting recorded. You should see ordinary Rails page requests but no writes of Ahoy visits or events.
 
+### Configure CORS for API Requests
+
+```ruby
+# config/initializers/cors.rb
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins '*'
+    resource '/ahoy/*', headers: :any, methods: [:get, :post, :options]
+  end
+end
+```
+
+Next we will configure the `rack-cors` gem to allow the application to respond to API request originating from different domains. Add file *config/initializers/cors.rb* containing the code you see in the sidebar. The setting `origins '*'` will accept API requests from any domain. If you are only accepting API requests from one domain, you can make this setting more restrictive for increased security. The setting `resource '/ahoy/*'` will accept only `GET` and `POST` requests to the Ahoy controllers. We'll test these settings in the next section.
+
 Commit your work to git with a message "configure Ahoy for API requests".
 
-You can leave the Rails application running. Next we'll test to see if the Rails application will capture API requests from the Generic Store web page.
+Restart your application after adding the CORS initializer file. You can leave the Rails application running to receive API requests from the Generic Store web page. Next we'll test to see if the Rails application will capture API requests from the Generic Store web page.
 
 ## Test API Requests
+
+```html
+# index.html
+<head>
+.
+.
+.
+  <!-- Ahoy analytics -->
+  <script src="https://unpkg.com/ahoy.js@0.3.3/dist/ahoy.js"></script>
+  <script>
+    ahoy.configure({
+      urlPrefix: "http://localhost:3000",
+      visitsUrl: "/ahoy/visits",
+      eventsUrl: "/ahoy/events",
+      cookieDomain: null,
+      page: null,
+      platform: "Web",
+      useBeacon: false,
+      startOnReady: true,
+      trackVisits: true
+    });
+  </script>
+</head>
+```
 
 Let's see if we can generate API requests from the Generic Store web page and record the visits and events in our Rails application.
 
 ### Configure Ahoy
 
-```html
-<script>
-  console.log('loading ahoy.configure');
-  ahoy.configure({
-    urlPrefix: "http://localhost:3000",
-    visitsUrl: "/ahoy/visits",
-    eventsUrl: "/ahoy/events",
-    cookieDomain: null,
-    page: null,
-    platform: "Web",
-    useBeacon: false,
-    startOnReady: true,
-    trackVisits: true
-  });
-</script>
-```
-
-We'll add JavaScript to configure `ahoy.js` to send events to [http://localhost:3000/](http://localhost:3000/).
+We'll add JavaScript to configure `ahoy.js` to send events to [http://localhost:3000](http://localhost:3000). Add the configuration script you see in the sidebar. Setting the `urlPrefix` to [http://localhost:3000](http://localhost:3000) will route the API requests to the Rails application running on port 3000. Note that the `urlPrefix` takes no trailing slash (the URL does not end in "/"). In a production environment, you'll set the `urlPrefix` to the domain of the Rails application.
 
 ### Launch the Generic Store Server
 
@@ -388,12 +415,16 @@ Launch the Node.js server to serve the Generic Store web page.
 
 `$ gulp dev`
 
-With the Rails application running on port 3000, the Node.js server recognizes the port is active and launches on port 3001.
+The Node.js server launches on port 3001. Fortunately, this avoids a port conflict with the Rails application running on port 3000.
 
-### Issue: No 'Access-Control-Allow-Origin'
+### Send and Observe API Requests
 
-In the JavaScript console, you'll see an error:
+TK
+
+### Troubleshooting: No 'Access-Control-Allow-Origin'
+
+In the JavaScript console, if you see this error it is due to a missing or misconfigured `rack-cors` gem:
 
 `Failed to load http://localhost:3000/ahoy/events: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:3001' is therefore not allowed access.`
 
-Next we'll resolve this issue.
+If you see this error, check the section "Configure CORS for API Requests."
