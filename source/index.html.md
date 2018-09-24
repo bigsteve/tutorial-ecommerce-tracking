@@ -265,7 +265,7 @@ Install the gem with Bundler and run the Ahoy install script and a database migr
 
 `$ rails db:migrate`
 
-The Ahoy Rails generator creates a configuration file *config/initializers/ahoy.rb* and two Ahoy models for a `Visit` and `Event`. The database migration updates the database to add two new tables for the visits and events. You can see the new tables in the *db/schema.rb* file.
+The Ahoy Rails generator creates a configuration file *config/initializers/ahoy.rb* and two Ahoy models for a `Visit` and `Event`. The database migration adds two new tables (for visits and events). You can see the new tables in the *db/schema.rb* file.
 
 Commit your work to git with a message "add Ahoy".
 
@@ -285,6 +285,8 @@ end
 ```
 Modify the application controller to record an Ahoy event to the database for every page request.
 
+See the code sidebar. You'll add an `after_action :track_action` to the controller and a `track_action` method. The `track_action` method calls the `ahoy.track` method provided by the Ahoy Ruby gem, writing some request parameters to the database. We've added the `ahoy.track` method to the application controller so that every request to the application is recorded.
+
 ### Test the Rails application
 
 Start the Rails server:
@@ -293,6 +295,61 @@ Start the Rails server:
 
 Visit the application home page at [http://localhost:3000/](http://localhost:3000/). You'll see the application home page.
 
-If you look at the console, you will see Ahoy records a visit in the database:
+If you look at the console, you will see Ahoy records a `Visit` in the database:
 
-`Ahoy::Visit Create (2.4ms)  INSERT INTO "ahoy_visits" ...`
+`Ahoy::Visit Create (...)  INSERT INTO "ahoy_visits" ...`
+
+The visit is automatically created by Ahoy and records information about the landing page and the browser, plus tokens that track the visit (the session) and the visitor.
+
+Ahoy also records an `Event` in the database because we've added the `ahoy.track` method to the application controller:
+
+`Ahoy::Event Create (...)  INSERT INTO "ahoy_events" ...`
+
+The event is automatically associated with the visit. That means we can create a database query that shows all events initiated by the visitor during the session.  We've created a custom event that records the controller name and action.
+
+We can use the Rails console to observe the records in the database. Quit the Rails server (or open a new terminal session), start the Rails console, and query the database:
+
+`$ rails console`
+
+`$ irb(main):001:0> Ahoy::Visit.last`
+
+`$ irb(main):002:0> Ahoy::Event.last`
+
+You'll see the database records for the `Visit` and `Event`.
+
+At this point we've got a Rails application that records visits and custom events. We can see the database records in the Rails console but we don't have an easy way to display records or generate reports. There's another problem: We are recording visits to our dedicated Rails reporting application. We don't want to record visits to our administrative application. We want to capture API requests originating from our simple Generic Store web page.
+
+Next we'll reconfigure Ahoy to ignore visits to the application and record API requests instead.
+
+### Configure for API Requests
+
+```ruby
+# config/initializers/ahoy.rb
+class Ahoy::Store < Ahoy::DatabaseStore
+end
+
+# set to true for JavaScript tracking
+Ahoy.api = true
+Ahoy.server_side_visits = false
+
+# better user agent parsing
+Ahoy.user_agent_parser = :device_detector
+```
+
+We'll remove our changes to the application controller so we are no longer recording server-side events. Just delete the changes and save the file *app/controllers/application_controller.rb* or run `git checkout app/controllers/application_controller.rb` to revert the changes.
+
+The Ahoy Ruby gem can be configured to respond to API requests and ignore server-side visits. Modify the file *config/initializers/ahoy.rb*:
+
+`Ahoy.api = true`
+
+`Ahoy.server_side_visits = false`
+
+Restart the Rails server and visit the application home page. Check the console log and make sure that visits are not getting recorded. You should see ordinary Rails page requests but no writes of Ahoy visits or events.
+
+Commit your work to git with a message "configure Ahoy for API requests".
+
+### Set Ports
+
+You can leave the Rails application running with its server responding to [http://localhost:3000/](http://localhost:3000/).
+
+We'll need to launch the Node.js server to serve the Generic Store web page on a different port.
