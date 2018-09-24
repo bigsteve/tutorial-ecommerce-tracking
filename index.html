@@ -239,7 +239,10 @@
                     <a href="#simple-website" class="toc-h2 toc-link" data-title="simple-website">Simple Website</a>
                   </li>
                   <li>
-                    <a href="#rails-application-with-ahoy" class="toc-h2 toc-link" data-title="rails-application-with-ahoy">Rails Application with Ahoy</a>
+                    <a href="#rails-composer" class="toc-h2 toc-link" data-title="rails-composer">Rails Composer</a>
+                  </li>
+                  <li>
+                    <a href="#add-ahoy-to-the-application" class="toc-h2 toc-link" data-title="add-ahoy-to-the-application">Add Ahoy to the Application</a>
                   </li>
               </ul>
           </li>
@@ -264,15 +267,19 @@
 <p>This &quot;code column&quot; contains code examples. Read the adjacent column for explanation and details.</p>
 </blockquote>
 
-<p>In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the number of transactions and revenue that your website generates. More importantly, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.</p>
+<p>In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the sales and marketing activity on your website. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.</p>
 
-<p>You may be familiar with Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor&#39;s progress through a sales funnel. Mixpanel focuses on tracking visitors rather than page views, which means once a visitor enters an email address or other identifying information, the visitor&#39;s page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.</p>
+<p>You may have heard of Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor&#39;s progress through a sales funnel. Mixpanel focuses on tracking visitors, which means once a visitor enters an email address or other identifying information, the visitor&#39;s page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.</p>
 
-<p>In this tutorial, we&#39;ll look at a &quot;do-it-yourself&quot; alternative for programmers that can simplify ecommerce tracking. We&#39;ll use the <a href="https://github.com/ankane/ahoy.js">Ahoy JavaScript analytics library</a> in combination with a Rails application that uses the <a href="https://github.com/ankane/ahoy">Ahoy Ruby gem</a>. Rather than use a tool such as Google Analytics or Mixpanel, you can add the Ahoy JavaScript analytics script to any website and send tracking data to a Rails application. You can customize the integration as you wish and you won&#39;t pay for the service or rely on a third-party to store your data. You may also gather more data, since many users employ ad blockers that prevent Google Analytics from collecting data.</p>
+<p>In this tutorial, we&#39;ll look at a &quot;do-it-yourself&quot; alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you&#39;ll have an in-depth understanding of your tools).</p>
+
+<p>We&#39;ll use the <a href="https://github.com/ankane/ahoy.js">Ahoy JavaScript analytics library</a> in combination with a Rails application that uses the <a href="https://github.com/ankane/ahoy">Ahoy Ruby gem</a>. You can add the Ahoy JavaScript analytics script to any website and send tracking data to a Rails application. You can customize the integration as you wish and you won&#39;t pay for the service or rely on a third-party to store your data. You may also gather more data, since many users employ ad blockers that prevent Google Analytics from collecting data.</p>
 <h2 id='architecture'>Architecture</h2>
 <p>You can add the Ahoy JavaScript analytics script to any website (it doesn&#39;t have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration.</p>
 
 <p>We will collect the tracking data by creating a Rails application that records the Ahoy API requests. We could create an API-only Rails application just to save the data to a database but in this case we&#39;d like to visit the application and see reports.</p>
+
+<p>A Google search for &quot;Ahoy analytics example&quot; will reveal several tutorials that show how to add the Ahoy Ruby gem to a Rails application so you can track activity within the application. These monolithic applications combine all functions within a single application and are suitable for simple applications which will not grow in complexity. In contrast, this tutorial shows you how to add the Ahoy JavaScript analytics script to any website and capture tracking data with a separate Rails application. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the &quot;gathering&quot; function from the &quot;storing and reporting&quot; function may be worthwhile. This service-oriented architecture (SOA) is the approach we describe in this tutorial.</p>
 <h2 id='scope-and-tasks'>Scope and Tasks</h2>
 <p>The primary purpose of this tutorial is to introduce the concepts you&#39;ll need to understand the implementation of ecommerce tracking. To that end, we will build a simple generic website with HTML and CSS and add the Ahoy JavaScript analytics library.</p>
 
@@ -358,7 +365,181 @@ POST http://localhost:3000/ahoy/events 404 (Not Found)
 <p>The Ahoy library will attempt to send a <code>POST</code> request to the local web server and you&#39;ll see a <code>404</code> error message that the local web server cannot find the URL where Ahoy is sending the request. This is progress! Earlier, Ahoy was unable to send tracking data. Now Ahoy is sending tracking data but it is not configured to send the tracking data to a server that can process the API requests.</p>
 
 <p>At this point, we have a simple web page with the Ahoy JavaScript analytics library integrated for sending tracking data. We can view the simple web page in a local web server (running under Node.js) and tracking data will be sent to another application using Ahoy API requests. However, we don&#39;t have another application running to receive the Ahoy API requests. Next we will build a Rails application to collect the tracking data sent by Ahoy.</p>
-<h2 id='rails-application-with-ahoy'>Rails Application with Ahoy</h2>
+<h2 id='rails-composer'>Rails Composer</h2><pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">ruby</span><span class="kv"> -v
+</span>ruby 2.5.1 ...
+<span class="w">$ </span><span class="nc">rails</span><span class="kv"> -v
+</span>Rails 5.2.0
+<span class="w">$ </span><span class="nc">rails</span><span class="kv"> new ecommerce-tracking -m https://raw.github.com/RailsApps/rails-composer/master/composer.rb
+</span>.
+.
+.
+option  Build a starter application?
+    1)  Build a RailsApps example application
+    2)  Contributed applications
+    3)  Custom application (experimental)
+choose  Enter your selection: 2
+option  Choose a starter application.
+    1)  rails-shortcut-app
+choose  Enter your selection: 1
+.
+.
+.
+<span class="w">$ </span><span class="nc">cd</span><span class="kv"> ecommerce-tracking
+</span><span class="w">$ </span><span class="nc">bundle</span><span class="kv"> install
+</span>...
+<span class="w">$ </span><span class="nc">rails</span><span class="kv"> -T
+</span>...
+</code></pre>
+<p>If you&#39;re new to Rails, you can learn <a href="http://railsapps.github.io/installrubyonrails-mac.html">how to install Rails</a> and set up your development environment. Let&#39;s check that Ruby and Rails are installed. You&#39;ll need Ruby 2.5 (or newer) and Rails 5.2 (or newer) on your computer to follow this tutorial.</p>
+
+<p><code>$ ruby -v</code></p>
+
+<p><code>$ rails -v</code></p>
+
+<p>We&#39;ll use <a href="http://www.railscomposer.com/">Rails Composer</a> to build the starter application named &quot;ecommerce-tracking&quot;. Rails Composer will give us a fully functional application, complete with Devise for authentication, role-based authorization, and the Bootstrap frontend framework. Here&#39;s how to generate a starter application with Rails Composer:</p>
+
+<p><code>$ rails new ecommerce-tracking -m https://raw.github.com/RailsApps/rails-composer/master/composer.rb</code></p>
+
+<p>We&#39;ll name our application &quot;ecommerce-tracking&quot; but you can use any name you like. Choose:</p>
+
+<p><code>2)  Contributed applications</code></p>
+
+<p>and</p>
+
+<p><code>1)  rails-shortcut-app</code></p>
+
+<p>When Rails Composer finishes generating the application, change directories and run <code>bundle install</code>.</p>
+
+<p><code>$ cd ecommerce-tracking</code></p>
+
+<p><code>$ bundle install</code></p>
+
+<p>You can confirm the application is functional by running a &quot;smoke test&quot; with <code>rails -T</code>. You should see a list of Rails commands.</p>
+
+<p>You can run the application server to see if the application works.</p>
+<pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">rails</span><span class="kv"> server
+</span>=&gt; Booting Puma
+=&gt; Rails 5.2.0 application starting in development
+.
+.
+.
+</code></pre>
+<p><code>$ rails server</code></p>
+
+<p>View the app running at <a href="http://localhost:3000/">http://localhost:3000/</a>. You&#39;ll see a welcome page with a navigation bar that includes a &quot;Sign in&quot; link. You can sign in with the email address <code>user@example.com</code> and the password <code>changeme</code> (the credentials are set in the <em>config/secrets.yml</em> file).</p>
+
+<p>Rails Composer has generated a full functional Rails application. The rails-shortcut-app you&#39;ve built is very similar to the <a href="https://github.com/RailsApps/rails-devise-roles">rails-devise-roles</a> example application. See the <a href="https://github.com/RailsApps/rails-devise-roles">rails-devise-roles</a> documentation if you&#39;d like to learn how Devise authentication or role-based authorization is set up.</p>
+
+<p>Next we&#39;ll add Ahoy to the application so we can track visits and events.</p>
+<h2 id='add-ahoy-to-the-application'>Add Ahoy to the Application</h2><pre class="highlight ruby tab-ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">source</span> <span class="s1">'https://rubygems.org'</span>
+<span class="n">git_source</span><span class="p">(</span><span class="ss">:github</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">repo</span><span class="o">|</span> <span class="s2">"https://github.com/</span><span class="si">#{</span><span class="n">repo</span><span class="si">}</span><span class="s2">.git"</span> <span class="p">}</span>
+<span class="n">ruby</span> <span class="s1">'2.5.1'</span>
+<span class="p">.</span><span class="nf">.</span><span class="o">.</span>
+<span class="c1"># gems for ecommerce tracking</span>
+<span class="n">gem</span> <span class="s1">'ahoy_matey'</span>
+</code></pre>
+<p>Open the Gemfile and add the Ahoy Ruby gem. Add the gem at the end of the file:</p>
+
+<p><code>gem &#39;ahoy_matey&#39;</code></p>
+<pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">bundle</span><span class="kv"> install
+</span>...
+<span class="w">$ </span><span class="nc">rails</span><span class="kv"> generate ahoy:install
+</span>create  config/initializers/ahoy.rb
+create  app/models/ahoy/visit.rb
+create  app/models/ahoy/event.rb
+create  db/migrate/20180923075710_create_ahoy_visits_and_events.rb
+
+Almost set! Last, run:
+
+rails db:migrate
+<span class="w">$ </span><span class="nc">rails</span><span class="kv"> db:migrate
+</span>...
+</code></pre>
+<p>Install the gem with Bundler and run the Ahoy install script and a database migration:</p>
+
+<p><code>$ bundle install</code></p>
+
+<p><code>$ rails generate ahoy:install</code></p>
+
+<p><code>$ rails db:migrate</code></p>
+
+<p>The Ahoy Rails generator creates a configuration file <em>config/initializers/ahoy.rb</em> and two Ahoy models for a <code>Visit</code> and <code>Event</code>. The database migration adds two new tables (for visits and events). You can see the new tables in the <em>db/schema.rb</em> file.</p>
+
+<p>Commit your work to git with a message &quot;add Ahoy&quot;.</p>
+<h3 id='modify-the-application-controller'>Modify the Application Controller</h3><pre class="highlight ruby tab-ruby"><code><span class="c1"># app/controllers/application_controller.rb</span>
+<span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">after_action</span> <span class="ss">:track_action</span>
+
+  <span class="kp">protected</span>
+
+  <span class="k">def</span> <span class="nf">track_action</span>
+    <span class="n">ahoy</span><span class="p">.</span><span class="nf">track</span> <span class="s2">"</span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">method</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">fullpath</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">request</span><span class="p">.</span><span class="nf">filtered_parameters</span><span class="p">.</span><span class="nf">to_s</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<p>Modify the application controller to record an Ahoy event to the database for every page request.</p>
+
+<p>See the code sidebar. You&#39;ll add an <code>after_action :track_action</code> to the controller and a <code>track_action</code> method. The <code>track_action</code> method calls the <code>ahoy.track</code> method provided by the Ahoy Ruby gem, writing some request parameters to the database. We&#39;ve added the <code>ahoy.track</code> method to the application controller so that every request to the application is recorded.</p>
+<h3 id='test-the-rails-application'>Test the Rails application</h3>
+<p>Start the Rails server:</p>
+
+<p><code>$ rails server</code></p>
+
+<p>Visit the application home page at <a href="http://localhost:3000/">http://localhost:3000/</a>. You&#39;ll see the application home page.</p>
+
+<p>If you look at the console, you will see Ahoy records a <code>Visit</code> in the database:</p>
+
+<p><code>Ahoy::Visit Create (...)  INSERT INTO &quot;ahoy_visits&quot; ...</code></p>
+
+<p>The visit is automatically created by Ahoy and records information about the landing page and the browser, plus tokens that track the visit (the session) and the visitor.</p>
+
+<p>Ahoy also records an <code>Event</code> in the database because we&#39;ve added the <code>ahoy.track</code> method to the application controller:</p>
+
+<p><code>Ahoy::Event Create (...)  INSERT INTO &quot;ahoy_events&quot; ...</code></p>
+
+<p>The event is automatically associated with the visit. That means we can create a database query that shows all events initiated by the visitor during the session.  We&#39;ve created a custom event that records the controller name and action.</p>
+
+<p>We can use the Rails console to observe the records in the database. Quit the Rails server (or open a new terminal session), start the Rails console, and query the database:</p>
+
+<p><code>$ rails console</code></p>
+
+<p><code>$ irb(main):001:0&gt; Ahoy::Visit.last</code></p>
+
+<p><code>$ irb(main):002:0&gt; Ahoy::Event.last</code></p>
+
+<p>You&#39;ll see the database records for the <code>Visit</code> and <code>Event</code>.</p>
+
+<p>At this point we&#39;ve got a Rails application that records visits and custom events. We can see the database records in the Rails console but we don&#39;t have an easy way to display records or generate reports. There&#39;s another problem: We are recording visits to our dedicated Rails reporting application. We don&#39;t want to record visits to our administrative application. We want to capture API requests originating from our simple Generic Store web page.</p>
+
+<p>Next we&#39;ll reconfigure Ahoy to ignore visits to the application and record API requests instead.</p>
+<h3 id='configure-for-api-requests'>Configure for API Requests</h3><pre class="highlight ruby tab-ruby"><code><span class="c1"># config/initializers/ahoy.rb</span>
+<span class="k">class</span> <span class="nc">Ahoy</span><span class="o">::</span><span class="no">Store</span> <span class="o">&lt;</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">DatabaseStore</span>
+<span class="k">end</span>
+
+<span class="c1"># set to true for JavaScript tracking</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">api</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">server_side_visits</span> <span class="o">=</span> <span class="kp">false</span>
+
+<span class="c1"># better user agent parsing</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">user_agent_parser</span> <span class="o">=</span> <span class="ss">:device_detector</span>
+</code></pre>
+<p>We&#39;ll remove our changes to the application controller so we are no longer recording server-side events. Just delete the changes and save the file <em>app/controllers/application_controller.rb</em> or run <code>git checkout app/controllers/application_controller.rb</code> to revert the changes.</p>
+
+<p>The Ahoy Ruby gem can be configured to respond to API requests and ignore server-side visits. Modify the file <em>config/initializers/ahoy.rb</em>:</p>
+
+<p><code>Ahoy.api = true</code></p>
+
+<p><code>Ahoy.server_side_visits = false</code></p>
+
+<p>Restart the Rails server and visit the application home page. Check the console log and make sure that visits are not getting recorded. You should see ordinary Rails page requests but no writes of Ahoy visits or events.</p>
+
+<p>Commit your work to git with a message &quot;configure Ahoy for API requests&quot;.</p>
+<h3 id='set-ports'>Set Ports</h3>
+<p>You can leave the Rails application running with its server responding to <a href="http://localhost:3000/">http://localhost:3000/</a>.</p>
+
+<p>We&#39;ll need to launch the Node.js server to serve the Generic Store web page on a different port.</p>
+
       </div>
       <div class="dark-box">
       </div>
