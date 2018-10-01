@@ -224,9 +224,6 @@
             <a href="#ecommerce-tracking-with-ahoy" class="toc-h1 toc-link" data-title="ecommerce-tracking-with-ahoy">Ecommerce Tracking with Ahoy</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#draft" class="toc-h2 toc-link" data-title="draft">DRAFT</a>
-                  </li>
-                  <li>
                     <a href="#introduction" class="toc-h2 toc-link" data-title="introduction">Introduction</a>
                   </li>
                   <li>
@@ -262,27 +259,21 @@
         <h1 id='ecommerce-tracking-with-ahoy'>Ecommerce Tracking with Ahoy</h1>
 <p><strong>by Daniel Kehoe</strong></p>
 
-<p><em>Last updated 24 September 2018</em></p>
-<h2 id='draft'>DRAFT</h2>
-<p>These are notes for a tutorial that introduces <a href="https://www.retentionrocket.com/">Retention Rocket</a> to Rails developers.</p>
+<p><em>Last updated 1 October 2018</em></p>
 <h2 id='introduction'>Introduction</h2>
 <blockquote>
 <p>This &quot;code column&quot; contains code examples. Read the adjacent column for explanation and details.</p>
 </blockquote>
 
-<p>In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the sales and marketing activity on your website. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.</p>
+<p>In this tutorial, you&#39;ll learn how to track visits to an ecommerce website so you can measure sales and marketing activity. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.</p>
 
-<p>You may have heard of Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor&#39;s progress through a sales funnel. Mixpanel focuses on tracking visitors, which means once a visitor enters an email address or other identifying information, the visitor&#39;s page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.</p>
-
-<p>In this tutorial, we&#39;ll look at a &quot;do-it-yourself&quot; alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you&#39;ll have an in-depth understanding of your tools).</p>
+<p>Google Analytics and Mixpanel are popular options for website tracking and analytics. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure. In this tutorial, we&#39;ll look at a &quot;do-it-yourself&quot; alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you&#39;ll have an in-depth understanding of your tools).</p>
 
 <p>We&#39;ll use the <a href="https://github.com/ankane/ahoy.js">Ahoy JavaScript analytics library</a> in combination with a Rails application that uses the <a href="https://github.com/ankane/ahoy">Ahoy Ruby gem</a>. You can add the Ahoy JavaScript analytics script to any website and send tracking data to a Rails application. You can customize the integration as you wish and you won&#39;t pay for the service or rely on a third-party to store your data. You may also gather more data, since many users employ ad blockers that prevent Google Analytics from collecting data.</p>
 <h2 id='architecture'>Architecture</h2>
-<p>You can add the Ahoy JavaScript analytics script to any website (it doesn&#39;t have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration.</p>
+<p>We&#39;ll implement a service-oriented architecture (SOA) with a front end for gathering tracking data and a separate back end for storing and reporting tracking data. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the &quot;gathering&quot; function from the &quot;storing and reporting&quot; function will be worthwhile.</p>
 
-<p>We will collect the tracking data by creating a Rails application that records the Ahoy API requests. We could create an API-only Rails application just to save the data to a database but in this case we&#39;d like to visit the application and see reports.</p>
-
-<p>A Google search for &quot;Ahoy analytics example&quot; will reveal several tutorials that show how to add the Ahoy Ruby gem to a Rails application so you can track activity within the application. These monolithic applications combine all functions within a single application and are suitable for simple applications which will not grow in complexity. In contrast, this tutorial shows you how to add the Ahoy JavaScript analytics script to any website and capture tracking data with a separate Rails application. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the &quot;gathering&quot; function from the &quot;storing and reporting&quot; function may be worthwhile. This service-oriented architecture (SOA) is the approach we describe in this tutorial.</p>
+<p>The front end will be the Ahoy JavaScript analytics script. You can add it to any website (it doesn&#39;t have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration. We will collect the tracking data by creating a Rails application that records the Ahoy API requests.</p>
 <h2 id='scope-and-tasks'>Scope and Tasks</h2>
 <p>The primary purpose of this tutorial is to introduce the concepts you&#39;ll need to understand the implementation of ecommerce tracking. To that end, we will build a simple generic website with HTML and CSS and add the Ahoy JavaScript analytics library.</p>
 
@@ -295,7 +286,8 @@
 <p>We&#39;ll start by building a simple website. We&#39;ll add the Ahoy JavaScript analytics library so we can visit the website home page and trigger an API request that sends event data to a remote server. To save effort and get a web page that looks realistic, we&#39;ll download a Bootstrap template from the <a href="https://startbootstrap.com/">Start Bootstrap</a> site.</p>
 
 <p>Visit the <a href="https://startbootstrap.com/template-overviews/shop-homepage/">Shop Homepage</a> and click the download button to get a zip archive file on your local machine. Open the zip archive and rename the folder to &quot;GenericStore.&quot;</p>
-<h3 id='add-the-ahoy-javascript-library'>Add the Ahoy JavaScript Library</h3><pre class="highlight html tab-html"><code><span class="nt">&lt;head&gt;</span>
+<h3 id='add-the-ahoy-javascript-library'>Add the Ahoy JavaScript Library</h3><pre class="highlight html tab-html"><code># index.html
+<span class="nt">&lt;head&gt;</span>
 
   <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
   <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width, initial-scale=1, shrink-to-fit=no"</span><span class="nt">&gt;</span>
@@ -354,7 +346,7 @@ on 'Navigator': Beacons are only supported over HTTP(S).
 <pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">gulp</span><span class="kv"> dev
 </span>[...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
 </code></pre>
-<p>Next you will start the local web server using Gulp. The Generic Store home page will be available in your web browser at <a href="http://localhost:3000">http://localhost:3000</a>.</p>
+<p>Next you will start the local web server using Gulp. If no other web server is running on port 3000, the Generic Store home page will be available in your web browser at <a href="http://localhost:3000">http://localhost:3000</a>.</p>
 
 <p><code>$ gulp dev</code></p>
 <pre class="highlight shell_session"><code>&gt; ahoy.trackAll();
@@ -441,10 +433,15 @@ choose  Enter your selection: 1
 <span class="p">.</span><span class="nf">.</span><span class="o">.</span>
 <span class="c1"># gems for ecommerce tracking</span>
 <span class="n">gem</span> <span class="s1">'ahoy_matey'</span>
+<span class="n">gem</span> <span class="s1">'rack-cors'</span>
 </code></pre>
-<p>Open the Gemfile and add the Ahoy Ruby gem. Add the gem at the end of the file:</p>
+<p>Open the Gemfile and add two gems at the end of the file:</p>
 
 <p><code>gem &#39;ahoy_matey&#39;</code></p>
+
+<p><code>gem &#39;rack-cors&#39;</code></p>
+
+<p>The Ahoy Ruby gem is named <code>ahoy_matey</code>. The <code>rack-cors</code> gem will allow CORS (cross-origin HTTP requests) so that your frontend <code>ahoy.js</code> script can send API requests to a backend Rails application on a different domain.</p>
 <pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">bundle</span><span class="kv"> install
 </span>...
 <span class="w">$ </span><span class="nc">rails</span><span class="kv"> generate ahoy:install
@@ -459,7 +456,7 @@ rails db:migrate
 <span class="w">$ </span><span class="nc">rails</span><span class="kv"> db:migrate
 </span>...
 </code></pre>
-<p>Install the gem with Bundler and run the Ahoy install script and a database migration:</p>
+<p>Install the gems with Bundler and run the Ahoy install script and a database migration:</p>
 
 <p><code>$ bundle install</code></p>
 
@@ -516,7 +513,7 @@ rails db:migrate
 <p>At this point we&#39;ve got a Rails application that records visits and custom events. We can see the database records in the Rails console but we don&#39;t have an easy way to display records or generate reports. There&#39;s another problem: We are recording visits to our dedicated Rails reporting application. We don&#39;t want to record visits to our administrative application. We want to capture API requests originating from our simple Generic Store web page.</p>
 
 <p>Next we&#39;ll reconfigure Ahoy to ignore visits to the application and record API requests instead.</p>
-<h3 id='configure-for-api-requests'>Configure for API Requests</h3><pre class="highlight ruby tab-ruby"><code><span class="c1"># config/initializers/ahoy.rb</span>
+<h3 id='configure-ahoy-for-api-requests'>Configure Ahoy for API Requests</h3><pre class="highlight ruby tab-ruby"><code><span class="c1"># config/initializers/ahoy.rb</span>
 <span class="k">class</span> <span class="nc">Ahoy</span><span class="o">::</span><span class="no">Store</span> <span class="o">&lt;</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">DatabaseStore</span>
 <span class="k">end</span>
 
@@ -536,28 +533,44 @@ rails db:migrate
 <p><code>Ahoy.server_side_visits = false</code></p>
 
 <p>Restart the Rails server and visit the application home page. Check the console log and make sure that visits are not getting recorded. You should see ordinary Rails page requests but no writes of Ahoy visits or events.</p>
+<h3 id='configure-cors-for-api-requests'>Configure CORS for API Requests</h3><pre class="highlight ruby tab-ruby"><code><span class="c1"># config/initializers/cors.rb</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">insert_before</span> <span class="mi">0</span><span class="p">,</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Cors</span> <span class="k">do</span>
+  <span class="n">allow</span> <span class="k">do</span>
+    <span class="n">origins</span> <span class="s1">'*'</span>
+    <span class="n">resource</span> <span class="s1">'/ahoy/*'</span><span class="p">,</span> <span class="ss">headers: :any</span><span class="p">,</span> <span class="ss">methods: </span><span class="p">[</span><span class="ss">:get</span><span class="p">,</span> <span class="ss">:post</span><span class="p">,</span> <span class="ss">:options</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre>
+<p>Next we will configure the <code>rack-cors</code> gem to allow the application to respond to API request originating from different domains. Add file <em>config/initializers/cors.rb</em> containing the code you see in the sidebar. The setting <code>origins &#39;*&#39;</code> will accept API requests from any domain. If you are only accepting API requests from one domain, you can make this setting more restrictive for increased security. The setting <code>resource &#39;/ahoy/*&#39;</code> will accept only <code>GET</code> and <code>POST</code> requests to the Ahoy controllers. We&#39;ll test these settings in the next section.</p>
 
 <p>Commit your work to git with a message &quot;configure Ahoy for API requests&quot;.</p>
 
-<p>You can leave the Rails application running. Next we&#39;ll test to see if the Rails application will capture API requests from the Generic Store web page.</p>
-<h2 id='test-api-requests'>Test API Requests</h2>
-<p>Let&#39;s see if we can generate API requests from the Generic Store web page and record the visits and events in our Rails application.</p>
-<h3 id='configure-ahoy'>Configure Ahoy</h3><pre class="highlight html tab-html"><code><span class="nt">&lt;script&gt;</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">'loading ahoy.configure'</span><span class="p">);</span>
-  <span class="nx">ahoy</span><span class="p">.</span><span class="nx">configure</span><span class="p">({</span>
-    <span class="na">urlPrefix</span><span class="p">:</span> <span class="s2">"http://localhost:3000"</span><span class="p">,</span>
-    <span class="na">visitsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/visits"</span><span class="p">,</span>
-    <span class="na">eventsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/events"</span><span class="p">,</span>
-    <span class="na">cookieDomain</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-    <span class="na">page</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-    <span class="na">platform</span><span class="p">:</span> <span class="s2">"Web"</span><span class="p">,</span>
-    <span class="na">useBeacon</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
-    <span class="na">startOnReady</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-    <span class="na">trackVisits</span><span class="p">:</span> <span class="kc">true</span>
-  <span class="p">});</span>
-<span class="nt">&lt;/script&gt;</span>
+<p>Restart your application after adding the CORS initializer file. You can leave the Rails application running to receive API requests from the Generic Store web page. Next we&#39;ll test to see if the Rails application will capture API requests from the Generic Store web page.</p>
+<h2 id='test-api-requests'>Test API Requests</h2><pre class="highlight html tab-html"><code># index.html
+<span class="nt">&lt;head&gt;</span>
+.
+.
+.
+  <span class="c">&lt;!-- Ahoy analytics --&gt;</span>
+  <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://unpkg.com/ahoy.js@0.3.3/dist/ahoy.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+  <span class="nt">&lt;script&gt;</span>
+    <span class="nx">ahoy</span><span class="p">.</span><span class="nx">configure</span><span class="p">({</span>
+      <span class="na">urlPrefix</span><span class="p">:</span> <span class="s2">"http://localhost:3000"</span><span class="p">,</span>
+      <span class="na">visitsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/visits"</span><span class="p">,</span>
+      <span class="na">eventsUrl</span><span class="p">:</span> <span class="s2">"/ahoy/events"</span><span class="p">,</span>
+      <span class="na">cookieDomain</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="na">page</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="na">platform</span><span class="p">:</span> <span class="s2">"Web"</span><span class="p">,</span>
+      <span class="na">useBeacon</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+      <span class="na">startOnReady</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="na">trackVisits</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">});</span>
+  <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
 </code></pre>
-<p>We&#39;ll add JavaScript to configure <code>ahoy.js</code> to send events to <a href="http://localhost:3000/">http://localhost:3000/</a>.</p>
+<p>Let&#39;s see if we can generate API requests from the Generic Store web page and record the visits and events in our Rails application.</p>
+<h3 id='configure-ahoy'>Configure Ahoy</h3>
+<p>We&#39;ll add JavaScript to configure <code>ahoy.js</code> to send events to <a href="http://localhost:3000">http://localhost:3000</a>. Add the configuration script you see in the sidebar. Setting the <code>urlPrefix</code> to <a href="http://localhost:3000">http://localhost:3000</a> will route the API requests to the Rails application running on port 3000. Note that the <code>urlPrefix</code> takes no trailing slash (the URL does not end in &quot;/&quot;). In a production environment, you&#39;ll set the <code>urlPrefix</code> to the domain of the Rails application.</p>
 <h3 id='launch-the-generic-store-server'>Launch the Generic Store Server</h3><pre class="highlight shell_session"><code><span class="w">$ </span><span class="nc">gulp</span><span class="kv"> dev
 </span>[...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
 </code></pre>
@@ -567,13 +580,37 @@ rails db:migrate
 
 <p><code>$ gulp dev</code></p>
 
-<p>With the Rails application running on port 3000, the Node.js server recognizes the port is active and launches on port 3001.</p>
-<h3 id='issue-no-39-access-control-allow-origin-39'>Issue: No &#39;Access-Control-Allow-Origin&#39;</h3>
-<p>In the JavaScript console, you&#39;ll see an error:</p>
+<p>The Node.js server automatically launches on port 3001 when it detects another server running on port 3000. Fortunately, this avoids a port conflict with the Rails application running on port 3000.</p>
+<h3 id='send-and-observe-api-requests'>Send and Observe API Requests</h3>
+<p>If the Rails application is running on port 3000 and you launch the Generic Store web page with <code>gulp dev</code>, the store will open in your web browser and you&#39;ll see Ahoy activity in the Rails server log in the console.</p>
+
+<p>Open the Chrome Developer Tools console and you&#39;ll see:</p>
+
+<p><code>Visit started</code></p>
+
+<p>Click on the <code>Object</code> line and you&#39;ll see the data sent as an API request to the Rails application. For example, you&#39;ll see:</p>
+
+<p><code>landing_page: &quot;http://localhost:3001/&quot;</code></p>
+
+<p>and a <code>visit_token</code>. On my machine, the visit_token is <code>14b88541-e286-47d6-bb00-ffa50e8c966e</code>.</p>
+
+<p>Open a new terminal tab and launch the Rails console for the ecommerce-tracking application. Query the database for the most recent Ahoy <code>Visit</code> record:</p>
+
+<p><code>$ rails console</code></p>
+
+<p><code>$ irb(main):001:0&gt; Ahoy::Visit.last</code></p>
+
+<p>You&#39;ll see the data written to the Rails application database, including <code>landing_page: &quot;http://localhost:3001/&quot;</code>. In my Rails console, I see the same <code>visit_token</code> I saw in the JavaScript console, <code>14b88541-e286-47d6-bb00-ffa50e8c966e</code>.</p>
+
+<p>At this point, you&#39;ve got a simple Generic Store web page that sends tracking data to a Rails application running on your local machine. The front end is talking and the back end is listening and recording.</p>
+
+<p>To make our application more useful, we can modify the Generic Store web page to send event-specific tracking data, such as messages that a product has been added to a shopping cart. We can also improve the Rails application to display reports so we can analyze the activity in our Generic Store.</p>
+<h3 id='troubleshooting-no-39-access-control-allow-origin-39'>Troubleshooting: No &#39;Access-Control-Allow-Origin&#39;</h3>
+<p>In the JavaScript console, if you see this error it is due to a missing or misconfigured <code>rack-cors</code> gem:</p>
 
 <p><code>Failed to load http://localhost:3000/ahoy/events: Response to preflight request doesn&#39;t pass access control check: No &#39;Access-Control-Allow-Origin&#39; header is present on the requested resource. Origin &#39;http://localhost:3001&#39; is therefore not allowed access.</code></p>
 
-<p>Next we&#39;ll resolve this issue.</p>
+<p>If you see this error, check the section &quot;Configure CORS for API Requests.&quot;</p>
 
       </div>
       <div class="dark-box">
