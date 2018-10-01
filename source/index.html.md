@@ -18,31 +18,23 @@ search: true
 
 **by Daniel Kehoe**
 
-_Last updated 24 September 2018_
-
-## DRAFT
-
-These are notes for a tutorial that introduces [Retention Rocket](https://www.retentionrocket.com/) to Rails developers.
+_Last updated 1 October 2018_
 
 ## Introduction
 
 > This "code column" contains code examples. Read the adjacent column for explanation and details.
 
-In this tutorial, we learn how to track visits to an ecommerce website. Ecommerce tracking allows you to measure the sales and marketing activity on your website. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.
+In this tutorial, you'll learn how to track visits to an ecommerce website so you can measure sales and marketing activity. For example, ecommerce tracking helps you identify marketing campaigns that result in highest revenue.
 
-You may have heard of Google Analytics and Mixpanel, popular options for website tracking and analytics. Google Analytics primarily focuses on tracking page views to show usage of a website, though it can be configured to record user actions such as a visitor's progress through a sales funnel. Mixpanel focuses on tracking visitors, which means once a visitor enters an email address or other identifying information, the visitor's page views and actions can be viewed in aggregate. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure.
-
-In this tutorial, we'll look at a "do-it-yourself" alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you'll have an in-depth understanding of your tools).
+Google Analytics and Mixpanel are popular options for website tracking and analytics. Products such as Google Analytics and Mixpanel are designed to be feature-rich for non-programmers, with complex interfaces that require expertise to configure. In this tutorial, we'll look at a "do-it-yourself" alternative for programmers that can simplify ecommerce tracking. For a technically adept programmer, building your own ecommerce tracking system actually may take less effort than learning how to use Google Analytics and Mixpanel (and you'll have an in-depth understanding of your tools).
 
 We'll use the [Ahoy JavaScript analytics library](https://github.com/ankane/ahoy.js) in combination with a Rails application that uses the [Ahoy Ruby gem](https://github.com/ankane/ahoy). You can add the Ahoy JavaScript analytics script to any website and send tracking data to a Rails application. You can customize the integration as you wish and you won't pay for the service or rely on a third-party to store your data. You may also gather more data, since many users employ ad blockers that prevent Google Analytics from collecting data.
 
 ## Architecture
 
-You can add the Ahoy JavaScript analytics script to any website (it doesn't have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration.
+We'll implement a service-oriented architecture (SOA) with a front end for gathering tracking data and a separate back end for storing and reporting tracking data. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the "gathering" function from the "storing and reporting" function will be worthwhile.
 
-We will collect the tracking data by creating a Rails application that records the Ahoy API requests. We could create an API-only Rails application just to save the data to a database but in this case we'd like to visit the application and see reports.
-
-A Google search for "Ahoy analytics example" will reveal several tutorials that show how to add the Ahoy Ruby gem to a Rails application so you can track activity within the application. These monolithic applications combine all functions within a single application and are suitable for simple applications which will not grow in complexity. In contrast, this tutorial shows you how to add the Ahoy JavaScript analytics script to any website and capture tracking data with a separate Rails application. Gathering and sending visitor data is a separate function from recording visitor data and displaying reports. If you expect your application to grow in complexity, separating the "gathering" function from the "storing and reporting" function may be worthwhile. This service-oriented architecture (SOA) is the approach we describe in this tutorial.
+The front end will be the Ahoy JavaScript analytics script. You can add it to any website (it doesn't have to be a Rails application). The Ahoy JavaScript library will send tracking data to any URL you set in the Ahoy configuration. We will collect the tracking data by creating a Rails application that records the Ahoy API requests.
 
 ## Scope and Tasks
 
@@ -135,7 +127,7 @@ $ gulp dev
 [...] Using gulpfile ~/workspace/rr/GenericStore/gulpfile.js
 ```
 
-Next you will start the local web server using Gulp. The Generic Store home page will be available in your web browser at [http://localhost:3000](http://localhost:3000).
+Next you will start the local web server using Gulp. If no other web server is running on port 3000, the Generic Store home page will be available in your web browser at [http://localhost:3000](http://localhost:3000).
 
 `$ gulp dev`
 
@@ -415,7 +407,7 @@ Launch the Node.js server to serve the Generic Store web page.
 
 `$ gulp dev`
 
-The Node.js server launches on port 3001. Fortunately, this avoids a port conflict with the Rails application running on port 3000.
+The Node.js server automatically launches on port 3001 when it detects another server running on port 3000. Fortunately, this avoids a port conflict with the Rails application running on port 3000.
 
 ### Send and Observe API Requests
 
