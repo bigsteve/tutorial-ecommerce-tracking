@@ -411,7 +411,29 @@ The Node.js server automatically launches on port 3001 when it detects another s
 
 ### Send and Observe API Requests
 
-TK
+If the Rails application is running on port 3000 and you launch the Generic Store web page with `gulp dev`, the store will open in your web browser and you'll see Ahoy activity in the Rails server log in the console.
+
+Open the Chrome Developer Tools console and you'll see:
+
+`Visit started`
+
+Click on the `Object` line and you'll see the data sent as an API request to the Rails application. For example, you'll see:
+
+`landing_page: "http://localhost:3001/"`
+
+and a `visit_token`. On my machine, the visit_token is `14b88541-e286-47d6-bb00-ffa50e8c966e`.
+
+Open a new terminal tab and launch the Rails console for the ecommerce-tracking application. Query the database for the most recent Ahoy `Visit` record:
+
+`$ rails console`
+
+`$ irb(main):001:0> Ahoy::Visit.last`
+
+You'll see the data written to the Rails application database, including `landing_page: "http://localhost:3001/"`. In my Rails console, I see the same `visit_token` I saw in the JavaScript console, `14b88541-e286-47d6-bb00-ffa50e8c966e`.
+
+At this point, you've got a simple Generic Store web page that sends tracking data to a Rails application running on your local machine. The front end is talking and the back end is listening and recording.
+
+To make our application more useful, we can modify the Generic Store web page to send event-specific tracking data, such as messages that a product has been added to a shopping cart. We can also improve the Rails application to display reports so we can analyze the activity in our Generic Store.
 
 ### Troubleshooting: No 'Access-Control-Allow-Origin'
 
