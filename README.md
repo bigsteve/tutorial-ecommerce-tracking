@@ -1,5 +1,5 @@
 
-# Tutorial: Using RocketSDK for Retention Marketing
+# Tutorial: Ecommerce Tracking with Ahoy
 
 The tutorial [Ecommerce Tracking with Ahoy](https://railsapps.github.io/tutorial-ecommerce-tracking/) shows how to track visits to an ecommerce website so you can measure sales and marketing activity.
 
